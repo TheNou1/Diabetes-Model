@@ -6,23 +6,14 @@ from sklearn.linear_model import (
 )
 
 from sklearn.neighbors import KNeighborsRegressor
+
 from sklearn.svm import SVR
+
 from sklearn.tree import DecisionTreeRegressor
+
 from sklearn.ensemble import RandomForestRegressor
 
-from sklearn.metrics import r2_score, mean_squared_error
-import numpy as np
-import pandas as pd
-
-def evaluate_model(model, X_train, X_test, y_train, y_test):
-    model.fit(X_train, y_train)
-
-    predictions = model.predict(X_test)
-
-    r2 = r2_score(y_test, predictions)
-    rmse = np.sqrt(mean_squared_error(y_test, predictions))
-
-    return r2, rmse
+from config import *
 
 models = {
 
@@ -30,18 +21,20 @@ models = {
         LinearRegression(),
 
     "Ridge Regression":
-        Ridge(alpha=1.0),
+        Ridge(alpha=RIDGE_ALPHA),
 
     "Lasso Regression":
-        Lasso(alpha=0.1),
+        Lasso(alpha=LASSO_ALPHA),
 
     "Elastic Net":
-        ElasticNet(alpha=0.1,
-                   l1_ratio=0.5),
+        ElasticNet(
+            alpha=ELASTIC_ALPHA,
+            l1_ratio=ELASTIC_L1
+        ),
 
     "KNN":
         KNeighborsRegressor(
-            n_neighbors=5
+            n_neighbors=K
         ),
 
     "SVR":
@@ -49,14 +42,13 @@ models = {
 
     "Decision Tree":
         DecisionTreeRegressor(
-            random_state=42
+            random_state=RANDOM_STATE
         ),
 
     "Random Forest":
         RandomForestRegressor(
-            n_estimators=100,
-            random_state=42
+            n_estimators=FOREST_TREES,
+            random_state=RANDOM_STATE
         )
 
 }
-

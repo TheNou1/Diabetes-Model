@@ -1,64 +1,43 @@
+import pandas as pd
 
-import Models
+from evaluator import evaluate
 
-#comparing the data with outliers
+from models import models
 
-dirty_results = []
+def compare(
+    x_train,
+    x_test,
+    y_train,
+    y_test
+):
 
-for name, model in models.items():
+    results = []
 
-    r2, rmse = evaluate_model(
-        model,
-        x_train,
-        x_test,
-        y_train,
-        y_test
+    for name, model in models.items():
+
+        metrics = evaluate(
+            model,
+            x_train,
+            x_test,
+            y_train,
+            y_test
+        )
+
+        results.append({
+
+            "Model": name,
+
+            "R²":
+                metrics["R²"],
+
+            "RMSE":
+                metrics["RMSE"]
+
+        })
+
+    results = pd.DataFrame(results)
+
+    return results.sort_values(
+        "R²",
+        ascending=False
     )
-
-    dirty_results.append({
-        "Model": name,
-        "R²": r2,
-        "RMSE": rmse
-    })
-
-dirty_results = pd.DataFrame(dirty_results)
-
-dirty_results.sort_values(
-    by="R²",
-    ascending=False
-)
-
-#comparing the data without outliers
-clean_results = []
-
-for name, model in models.items():
-
-    r2, rmse = evaluate_model(
-        model,
-        xc_train,
-        xc_test,
-        yc_train,
-        yc_test
-    )
-
-    clean_results.append({
-        "Model": name,
-        "R²": r2,
-        "RMSE": rmse
-    })
-
-clean_results = pd.DataFrame(clean_results)
-
-clean_results.sort_values(
-
-    by="R²",
-    ascending=False
-)
-
-comparison = dirty_results.merge(
-    clean_results,
-    on="Model",
-    suffixes=("_Dirty", "_Clean")
-)
-
-comparison
