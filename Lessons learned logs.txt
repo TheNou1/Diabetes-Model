@@ -1,0 +1,9 @@
+﻿* Cleaned a copy of the dataframe by removing outliers in data. Gonna keep it to check if its worse or better at predicting with/without the outliers
+* Had the scaled data tested alongside the cleaned and dirty data to check the differences, nothing changed so i dropped them after. I know its already mentioned in the docs but i wanted to see it for myself
+* Split the data into test/train
+Lessons learned:
+* If data is highly correlated, linear regression leads to greatly different coefficients when comparing with/without outliers
+* Trained model lives in .pkl, and lives on my  machine, api is the only way for http requests to reach it
+* Only need to import the model itself, not the other connective tissue
+* Pydantic helps validate user input into webui(rough understanding)
+* Render.com is a good free option(ill try others if something goes wrong)
