@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diabetes Progression Predictor</title>
+<style>
+  :root {
+    --green: #0f6e56;
+    --green-dark: #085041;
+    --green-light: #e1f5ee;
+    --border: #d3d1c7;
+    --text: #2c2c2a;
+    --text-muted: #5f5e5a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f7f7f5;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 48px 16px;
+    margin: 0;
+  }
+
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 24px;
+    color: var(--green-dark);
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus {
+    border-color: var(--green);
+  }
+
+  button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--green-dark);
+  }
+
+  button:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+  }
+
+  .result {
+    margin-top: 20px;
+    padding: 18px;
+    background: var(--green-light);
+    border-radius: 8px;
+    text-align: center;
+    display: none;
+  }
+
+  .result.visible {
+    display: block;
+  }
+
+  .result-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+
+  .result-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+
+  .error {
+    margin-top: 16px;
+    padding: 12px;
+    background: #fcebeb;
+    color: #791f1f;
+    border-radius: 6px;
+    font-size: 13px;
+    display: none;
+  }
+
+  .error.visible {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Diabetes Progression Predictor</h1>
+
+  <form id="predict-form">
+    <div class="field">
+      <label for="age">Age</label>
+      <input type="number" step="any" id="age" required>
+    </div>
+    <div class="field">
+      <label for="sex">Sex</label>
+      <input type="number" step="any" id="sex" required>
+    </div>
+    <div class="field">
+      <label for="bmi">BMI</label>
+      <input type="number" step="any" id="bmi" required>
+    </div>
+    <div class="field">
+      <label for="bp">Blood Pressure</label>
+      <input type="number" step="any" id="bp" required>
+    </div>
+    <div class="field">
+      <label for="s1">S1</label>
+      <input type="number" step="any" id="s1" required>
+    </div>
+    <div class="field">
+      <label for="s2">S2</label>
+      <input type="number" step="any" id="s2" required>
+    </div>
+    <div class="field">
+      <label for="s3">S3</label>
+      <input type="number" step="any" id="s3" required>
+    </div>
+    <div class="field">
+      <label for="s4">S4</label>
+      <input type="number" step="any" id="s4" required>
+    </div>
+    <div class="field">
+      <label for="s5">S5</label>
+      <input type="number" step="any" id="s5" required>
+    </div>
+    <div class="field">
+      <label for="s6">S6</label>
+      <input type="number" step="any" id="s6" required>
+    </div>
+
+    <button type="submit" id="submit-btn">Predict</button>
+  </form>
+
+  <div class="result" id="result">
+    <div class="result-label">Prediction</div>
+    <div class="result-value" id="result-value">--</div>
+  </div>
+
+  <div class="error" id="error"></div>
+</div>
+
+<script>
+  // Point this at your live Render URL
+  const API_URL = "https://model-site-vxr6.onrender.com/predict";
+
+  const form = document.getElementById("predict-form");
+  const submitBtn = document.getElementById("submit-btn");
+  const resultBox = document.getElementById("result");
+  const resultValue = document.getElementById("result-value");
+  const errorBox = document.getElementById("error");
+
+  const FIELDS = ["age", "sex", "bmi", "bp", "s1", "s2", "s3", "s4", "s5", "s6"];
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    resultBox.classList.remove("visible");
+    errorBox.classList.remove("visible");
+
+    const payload = {};
+    for (const field of FIELDS) {
+      payload[field] = parseFloat(document.getElementById(field).value);
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Predicting...";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => null);
+        throw new Error(errBody?.detail?.[0]?.msg || `Request failed (${response.status})`);
+      }
+
+      const data = await response.json();
+      resultValue.textContent = data.prediction.toFixed(1);
+      resultBox.classList.add("visible");
+
+    } catch (err) {
+      errorBox.textContent = err.message.includes("Failed to fetch")
+        ? "Couldn't reach the server. It may be waking up (free tier) — try again in 30 seconds."
+        : err.message;
+      errorBox.classList.add("visible");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Predict";
+    }
+  });
+</script>
+
+</body>
+</html>
